@@ -1,22 +1,25 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import classNames from "../utils/class-names";
 import useInterval from "../utils/useInterval";
 import Break from "./Break";
 import Focus from "./Focus";
+import TimeLeft from "./TimeLeft";
 
 function Pomodoro() {
+  const audioElement = useRef(null);
   const [currentSessionType, setCurrentSessionType] = useState("Focus");
+  const [currentState, setCurrentState] = useState("Focusing");
   const [focusLength, setFocusLength] = useState(1500);
   const [breakLength, setBreakLength] = useState(300);
   const [timeLeft, setTimeLeft] = useState(focusLength);
   // Timer starts out paused
   const [isTimerRunning, setIsTimerRunning] = useState(false);
+  const [isPaused, setIsPaused] = useState("");
 
   //Focus Length Decrementation / Incrementation
 
-  const decrementFocusLengthByOneMinute = () => {
+  const decrementFocusLengthByOne = () => {
     const newFocusLength = focusLength - 300;
-
     if (newFocusLength < 300) {
       setFocusLength(300);
     } else {
@@ -26,7 +29,6 @@ function Pomodoro() {
 
   const incrementFocusLengthByOne = () => {
     const newFocusLength = focusLength + 300;
-
     if (newFocusLength > 3600) {
       setFocusLength(3600);
     } else {
@@ -58,6 +60,15 @@ function Pomodoro() {
     ":" +
     focusSeconds.toString().padStart(2, "0");
 
+  // Break Length Formatization
+
+  const breakMinutes = Math.floor(breakLength / 60);
+  const breakSeconds = breakLength % 60;
+  let formattedBreakLength =
+    breakMinutes.toString().padStart(2, "0") +
+    ":" +
+    breakSeconds.toString().padStart(2, "0");
+
   //TimeLeft formatization
 
   const timeLeftInMinutes = Math.floor(timeLeft / 60);
@@ -73,21 +84,28 @@ function Pomodoro() {
     setTimeLeft(focusLength);
   }, [focusLength]);
 
+  // Interval
+
   useInterval(
     () => {
       // ToDo: Implement what should happen when the timer is running
 
       if (timeLeft > 0) {
         setTimeLeft(timeLeft - 1);
+        audioElement.current.play();
       } else if (timeLeft === 0) {
         //switch to breakTime
+
         if (currentSessionType === "Focus") {
           setCurrentSessionType("Break");
+          setCurrentState("On Break");
           //setTimeLeft to breakTimeLength
           setTimeLeft(breakLength);
         } else if (currentSessionType === "Break") {
           //Switch back to focusTime
+
           setCurrentSessionType("Focus");
+          setCurrentState("Focusing");
           setTimeLeft(focusLength);
         }
       }
@@ -99,22 +117,30 @@ function Pomodoro() {
 
   function playPause() {
     setIsTimerRunning((prevState) => !prevState);
+    if (!isTimerRunning) {
+      setIsPaused("");
+    } else {
+      setIsPaused("Paused");
+    }
   }
 
   // Stop Button
+  const handleStopButton = () => {
+    //clear the timeout interval
+    setTimeLeft(focusLength);
+    setIsTimerRunning(false);
+    // set the interval null
+    // set the sessiontype to 'Session'
+  };
 
-  function stopButton() {
-    if (isTimerRunning) {
-      setTimeLeft(focusLength);
-    }
-  }
+  //Play Audio
 
   return (
     <div className="pomodoro">
       <div className="row">
         <Focus
           focusLength={focusLength}
-          decrementFocusLengthByOneMinute={decrementFocusLengthByOneMinute}
+          decrementFocusLengthByOneMinute={decrementFocusLengthByOne}
           incrementFocusLengthByOne={incrementFocusLengthByOne}
         />
         <Break
@@ -150,42 +176,23 @@ function Pomodoro() {
               type="button"
               className="btn btn-secondary"
               title="Stop the session"
-              onClick={stopButton}
+              onClick={handleStopButton}
             >
               <span className="oi oi-media-stop" />
             </button>
+            <audio id="beep" ref={audioElement}>
+              <source src="public/alarm/alarm-clock-buzzer-beeps.mp3"></source>
+            </audio>
           </div>
         </div>
       </div>
-      <div>
-        {/* TODO: This area should show only when a focus or break session is running or pauses */}
-        <div className="row mb-2">
-          <div className="col">
-            {/* TODO: Update message below to include current session (Focusing or On Break) and total duration */}
-            <h2 data-testid="session-title">
-              Focusing for {formattedFocusLength} minutes
-            </h2>
-            {/* TODO: Update message below to include time remaining in the current session */}
-            <p className="lead" data-testid="session-sub-title">
-              {formattedTimeLeft} remaining
-            </p>
-          </div>
-        </div>
-        <div className="row mb-2">
-          <div className="col">
-            <div className="progress" style={{ height: "20px" }}>
-              <div
-                className="progress-bar"
-                role="progressbar"
-                aria-valuemin="0"
-                aria-valuemax="100"
-                aria-valuenow="0" // TODO: Increase aria-valuenow as elapsed time increases
-                style={{ width: "0%" }} // TODO: Increase width % as elapsed time increases
-              />
-            </div>
-          </div>
-        </div>
-      </div>
+      <TimeLeft
+        currentState={currentState}
+        formattedFocusLength={formattedFocusLength}
+        formattedTimeLeft={formattedTimeLeft}
+        isPaused={isPaused}
+        isTimeRunning={isTimerRunning}
+      />
     </div>
   );
 }
