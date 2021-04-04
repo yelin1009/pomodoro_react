@@ -6,6 +6,7 @@ function TimeLeft({
   isPaused,
   hidden,
   ariaValue,
+  displayDuration,
 }) {
   return (
     hidden && (
@@ -15,7 +16,7 @@ function TimeLeft({
           <div className="col">
             {/* TODO: Update message below to include current session (Focusing or On Break) and total duration */}
             <h2 data-testid="session-title">
-              {currentState} for {formattedTimeLeft} minutes
+              {currentState} for {displayDuration} minutes
             </h2>
             {/* TODO: Update message below to include time remaining in the current session */}
             <p className="lead" data-testid="session-sub-title">

@@ -4,6 +4,8 @@ import useInterval from "../utils/useInterval";
 import Break from "./Break";
 import Focus from "./Focus";
 import TimeLeft from "./TimeLeft";
+import { minutesToDuration } from "../utils/duration";
+import { secondsToDuration } from "../utils/duration";
 
 function Pomodoro() {
   const audioElement = useRef(null);
@@ -56,30 +58,18 @@ function Pomodoro() {
 
   // Break Length Formatization
 
-  const breakMinutes = Math.floor(breakLength / 60);
-  const breakSeconds = breakLength % 60;
-  let formattedBreakLength =
-    breakMinutes.toString().padStart(2, "0") +
-    ":" +
-    breakSeconds.toString().padStart(2, "0");
+  let formattedBreakLength = secondsToDuration(breakLength);
 
   // Focus Length formatization
 
-  const focusMinutes = Math.floor(focusLength / 60);
-  const focusSeconds = focusLength % 60;
-  let formattedFocusLength =
-    focusMinutes.toString().padStart(2, "0") +
-    ":" +
-    focusSeconds.toString().padStart(2, "0");
+  let formattedFocusLength = minutesToDuration(focusLength / 60);
 
   //TimeLeft formatization
 
-  const timeLeftInMinutes = Math.floor(timeLeft / 60);
-  const timeLeftInSeconds = timeLeft % 60;
-  let formattedTimeLeft =
-    timeLeftInMinutes.toString().padStart(2, "0") +
-    ":" +
-    timeLeftInSeconds.toString().padStart(2, "0");
+  let formattedTimeLeft = secondsToDuration(timeLeft);
+
+  //TimeLeft to display
+  let displayDuration = minutesToDuration(focusLength / 60);
 
   // TimeLeft
 
@@ -88,11 +78,11 @@ function Pomodoro() {
   }, [focusLength]);
 
   // Interval
-
+  let newProgress = 100 / focusLength;
   useInterval(
     () => {
       // ToDo: Implement what should happen when the timer is running
-      let newProgress = 100 / focusLength;
+
       if (timeLeft > 0) {
         setTimeLeft(timeLeft - 1);
         setProgress(progress + newProgress);
@@ -100,8 +90,11 @@ function Pomodoro() {
       } else if (timeLeft === 0) {
         setProgress(0);
         setAriaValue("0");
+        new Audio(`https://bigsoundbank.com/UPLOAD/mp3/1482.mp3`).play();
+
         if (currentSessionType === "Focus") {
           newProgress = 100 / breakLength;
+
           setCurrentSessionType("Break");
           setCurrentState("On Break");
           setTimeLeft(breakLength);
@@ -115,7 +108,7 @@ function Pomodoro() {
         }
       }
     },
-    isTimerRunning ? 1000 : null
+    isTimerRunning ? 10 : null
   );
 
   // Pause Button
@@ -203,6 +196,7 @@ function Pomodoro() {
         isPaused={isPaused}
         hidden={hidden}
         ariaValue={ariaValue}
+        displayDuration={displayDuration}
       />
     </div>
   );
