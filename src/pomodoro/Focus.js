@@ -1,19 +1,10 @@
 import React from "react";
 
 function Focus({
-  focusLength,
+  formattedFocusLength,
   decrementFocusLengthByOneMinute,
   incrementFocusLengthByOne,
 }) {
-  // Focus Length formatization
-
-  const focusMinutes = Math.floor(focusLength / 60);
-  const focusSeconds = focusLength % 60;
-  let formattedFocusLength =
-    focusMinutes.toString().padStart(2, "0") +
-    ":" +
-    focusSeconds.toString().padStart(2, "0");
-
   return (
     <div className="col">
       <div className="input-group input-group-lg mb-2">

@@ -15,6 +15,9 @@ function Pomodoro() {
   // Timer starts out paused
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [isPaused, setIsPaused] = useState("");
+  const [hidden, setHidden] = useState(false);
+  const [progress, setProgress] = useState(0);
+  const [ariaValue, setAriaValue] = useState("0");
 
   //Focus Length Decrementation / Incrementation
 
@@ -51,15 +54,6 @@ function Pomodoro() {
     setBreakLength(breakLength + 60);
   };
 
-  //formatted FocusLength
-
-  const focusMinutes = Math.floor(focusLength / 60);
-  const focusSeconds = focusLength % 60;
-  let formattedFocusLength =
-    focusMinutes.toString().padStart(2, "0") +
-    ":" +
-    focusSeconds.toString().padStart(2, "0");
-
   // Break Length Formatization
 
   const breakMinutes = Math.floor(breakLength / 60);
@@ -68,6 +62,15 @@ function Pomodoro() {
     breakMinutes.toString().padStart(2, "0") +
     ":" +
     breakSeconds.toString().padStart(2, "0");
+
+  // Focus Length formatization
+
+  const focusMinutes = Math.floor(focusLength / 60);
+  const focusSeconds = focusLength % 60;
+  let formattedFocusLength =
+    focusMinutes.toString().padStart(2, "0") +
+    ":" +
+    focusSeconds.toString().padStart(2, "0");
 
   //TimeLeft formatization
 
@@ -89,18 +92,20 @@ function Pomodoro() {
   useInterval(
     () => {
       // ToDo: Implement what should happen when the timer is running
-
+      let newProgress = 100 / focusLength;
       if (timeLeft > 0) {
         setTimeLeft(timeLeft - 1);
-        audioElement.current.play();
+        setProgress(progress + newProgress);
+        setAriaValue(progress.toString());
       } else if (timeLeft === 0) {
-        //switch to breakTime
-
+        setProgress(0);
+        setAriaValue("0");
         if (currentSessionType === "Focus") {
+          newProgress = 100 / breakLength;
           setCurrentSessionType("Break");
           setCurrentState("On Break");
-          //setTimeLeft to breakTimeLength
           setTimeLeft(breakLength);
+          //setTimeLeft to breakTimeLength
         } else if (currentSessionType === "Break") {
           //Switch back to focusTime
 
@@ -119,6 +124,7 @@ function Pomodoro() {
     setIsTimerRunning((prevState) => !prevState);
     if (!isTimerRunning) {
       setIsPaused("");
+      setHidden(true);
     } else {
       setIsPaused("Paused");
     }
@@ -129,6 +135,11 @@ function Pomodoro() {
     //clear the timeout interval
     setTimeLeft(focusLength);
     setIsTimerRunning(false);
+    setHidden(false);
+    setProgress(0);
+    setAriaValue("0");
+    setCurrentSessionType("Focus");
+    setCurrentState("Focus");
     // set the interval null
     // set the sessiontype to 'Session'
   };
@@ -139,12 +150,12 @@ function Pomodoro() {
     <div className="pomodoro">
       <div className="row">
         <Focus
-          focusLength={focusLength}
+          formattedFocusLength={formattedFocusLength}
           decrementFocusLengthByOneMinute={decrementFocusLengthByOne}
           incrementFocusLengthByOne={incrementFocusLengthByOne}
         />
         <Break
-          breakLength={breakLength}
+          formattedBreakLength={formattedBreakLength}
           decrementBreakLengthByOne={decrementBreakLengthByOne}
           incrementBreakLengthByOne={incrementBreakLengthByOne}
         />
@@ -188,10 +199,10 @@ function Pomodoro() {
       </div>
       <TimeLeft
         currentState={currentState}
-        formattedFocusLength={formattedFocusLength}
         formattedTimeLeft={formattedTimeLeft}
         isPaused={isPaused}
-        isTimeRunning={isTimerRunning}
+        hidden={hidden}
+        ariaValue={ariaValue}
       />
     </div>
   );

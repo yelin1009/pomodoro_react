@@ -1,19 +1,10 @@
 import React from "react";
 
 function Break({
-  breakLength,
+  formattedBreakLength,
   decrementBreakLengthByOne,
   incrementBreakLengthByOne,
 }) {
-  // Break Length Formatization
-
-  const breakMinutes = Math.floor(breakLength / 60);
-  const breakSeconds = breakLength % 60;
-  let formattedBreakLength =
-    breakMinutes.toString().padStart(2, "0") +
-    ":" +
-    breakSeconds.toString().padStart(2, "0");
-
   return (
     <div className="col">
       <div className="float-right">
