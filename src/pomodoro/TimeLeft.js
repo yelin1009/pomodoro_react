@@ -6,8 +6,8 @@ function TimeLeft({
   hidden,
   progress,
   formattedTimeLeftInSeconds,
+  formattedDurationInMinutes,
   formattedFocusLength,
-  duration,
 }) {
   return (
     hidden && (
@@ -17,7 +17,7 @@ function TimeLeft({
           <div className="col">
             {/* TODO: Update message below to include current session (Focusing or On Break) and total duration */}
             <h2 data-testid="session-title">
-              {currentState} for {formattedFocusLength} minutes
+              {currentState} for {formattedDurationInMinutes} minutes
             </h2>
             {/* TODO: Update message below to include time remaining in the current session */}
             <p className="lead" data-testid="session-sub-title">

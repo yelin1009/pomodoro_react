@@ -12,6 +12,7 @@ function Pomodoro() {
   const [focusLength, setFocusLength] = useState(1500);
   const [breakLength, setBreakLength] = useState(300);
   const [timeLeft, setTimeLeft] = useState(focusLength);
+  const [duration, setDuration] = useState(focusLength);
   // Timer starts out paused
   const [isTimerRunning, setIsTimerRunning] = useState(false);
   const [isPaused, setIsPaused] = useState("");
@@ -59,6 +60,10 @@ function Pomodoro() {
     setTimeLeft(focusLength);
   }, [focusLength]);
 
+  useEffect(() => {
+    setDuration(focusLength);
+  }, [focusLength]);
+
   // Break Length Formatization
 
   let formattedBreakLength = secondsToDuration(breakLength);
@@ -70,6 +75,8 @@ function Pomodoro() {
   //TimeLeft formatization
 
   let formattedTimeLeftInSeconds = secondsToDuration(timeLeft);
+
+  const formattedDurationInMinutes = minutesToDuration(duration / 60);
 
   // Interval
 
@@ -89,6 +96,7 @@ function Pomodoro() {
         setCurrentSessionType("Break");
         setCurrentState("On Break");
         setTimeLeft(breakLength);
+        setDuration(breakLength);
 
         //setTimeLeft to breakTimeLength
       } else if (timeLeft === 0 && currentSessionType === "Break") {
@@ -98,6 +106,7 @@ function Pomodoro() {
         setCurrentSessionType("Focus");
         setCurrentState("Focusing");
         setTimeLeft(focusLength);
+        setDuration(focusLength);
       }
     },
     isTimerRunning ? 1000 : null
@@ -181,6 +190,7 @@ function Pomodoro() {
       <TimeLeft
         currentState={currentState}
         formattedFocusLength={formattedFocusLength}
+        formattedDurationInMinutes={formattedDurationInMinutes}
         formattedTimeLeftInSeconds={formattedTimeLeftInSeconds}
         isPaused={isPaused}
         hidden={hidden}
