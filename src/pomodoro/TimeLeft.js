@@ -2,11 +2,12 @@ import React from "react";
 
 function TimeLeft({
   currentState,
-  formattedTimeLeft,
   isPaused,
   hidden,
-  ariaValue,
-  displayDuration,
+  progress,
+  formattedTimeLeftInSeconds,
+  formattedFocusLength,
+  duration,
 }) {
   return (
     hidden && (
@@ -16,11 +17,11 @@ function TimeLeft({
           <div className="col">
             {/* TODO: Update message below to include current session (Focusing or On Break) and total duration */}
             <h2 data-testid="session-title">
-              {currentState} for {displayDuration} minutes
+              {currentState} for {formattedFocusLength} minutes
             </h2>
             {/* TODO: Update message below to include time remaining in the current session */}
             <p className="lead" data-testid="session-sub-title">
-              {formattedTimeLeft} remaining
+              {formattedTimeLeftInSeconds} remaining
             </p>
             <h2>{isPaused}</h2>
           </div>
@@ -33,8 +34,9 @@ function TimeLeft({
                 role="progressbar"
                 aria-valuemin="0"
                 aria-valuemax="100"
-                aria-valuenow={ariaValue} // TODO: Increase aria-valuenow as elapsed time increases
-                style={{ width: `${ariaValue}%` }} // TODO: Increase width % as elapsed time increases
+                aria-valuenow={progress}
+                // TODO: Increase aria-valuenow as elapsed time increases
+                style={{ width: `${progress}%` }} // TODO: Increase width % as elapsed time increases
               />
             </div>
           </div>

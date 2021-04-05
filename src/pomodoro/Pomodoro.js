@@ -1,14 +1,12 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState } from "react";
 import classNames from "../utils/class-names";
 import useInterval from "../utils/useInterval";
 import Break from "./Break";
 import Focus from "./Focus";
 import TimeLeft from "./TimeLeft";
-import { minutesToDuration } from "../utils/duration";
-import { secondsToDuration } from "../utils/duration";
+import { minutesToDuration, secondsToDuration } from "../utils/duration";
 
 function Pomodoro() {
-  const audioElement = useRef(null);
   const [currentSessionType, setCurrentSessionType] = useState("Focus");
   const [currentState, setCurrentState] = useState("Focusing");
   const [focusLength, setFocusLength] = useState(1500);
@@ -19,7 +17,6 @@ function Pomodoro() {
   const [isPaused, setIsPaused] = useState("");
   const [hidden, setHidden] = useState(false);
   const [progress, setProgress] = useState(0);
-  const [ariaValue, setAriaValue] = useState("0");
 
   //Focus Length Decrementation / Incrementation
 
@@ -56,6 +53,12 @@ function Pomodoro() {
     setBreakLength(breakLength + 60);
   };
 
+  // TimeLeft
+
+  useEffect(() => {
+    setTimeLeft(focusLength);
+  }, [focusLength]);
+
   // Break Length Formatization
 
   let formattedBreakLength = secondsToDuration(breakLength);
@@ -66,49 +69,38 @@ function Pomodoro() {
 
   //TimeLeft formatization
 
-  let formattedTimeLeft = secondsToDuration(timeLeft);
-
-  //TimeLeft to display
-  let displayDuration = minutesToDuration(focusLength / 60);
-
-  // TimeLeft
-
-  useEffect(() => {
-    setTimeLeft(focusLength);
-  }, [focusLength]);
+  let formattedTimeLeftInSeconds = secondsToDuration(timeLeft);
 
   // Interval
-  let newProgress = 100 / focusLength;
+
   useInterval(
     () => {
       // ToDo: Implement what should happen when the timer is running
 
-      if (timeLeft > 0) {
+      if (timeLeft > 0 && currentSessionType === "Focus") {
         setTimeLeft(timeLeft - 1);
-        setProgress(progress + newProgress);
-        setAriaValue(progress.toString());
-      } else if (timeLeft === 0) {
-        setProgress(0);
-        setAriaValue("0");
+        setProgress(progress + 100 / focusLength);
+      } else if (timeLeft > 0 && currentSessionType === "Break") {
+        setTimeLeft(timeLeft - 1);
+        setProgress(progress + 100 / breakLength);
+      } else if (currentSessionType === "Focus") {
         new Audio(`https://bigsoundbank.com/UPLOAD/mp3/1482.mp3`).play();
+        setProgress(0);
+        setCurrentSessionType("Break");
+        setCurrentState("On Break");
+        setTimeLeft(breakLength);
 
-        if (currentSessionType === "Focus") {
-          newProgress = 100 / breakLength;
-
-          setCurrentSessionType("Break");
-          setCurrentState("On Break");
-          setTimeLeft(breakLength);
-          //setTimeLeft to breakTimeLength
-        } else if (currentSessionType === "Break") {
-          //Switch back to focusTime
-
-          setCurrentSessionType("Focus");
-          setCurrentState("Focusing");
-          setTimeLeft(focusLength);
-        }
+        //setTimeLeft to breakTimeLength
+      } else if (timeLeft === 0 && currentSessionType === "Break") {
+        //Switch back to focusTime
+        new Audio(`https://bigsoundbank.com/UPLOAD/mp3/1482.mp3`).play();
+        setProgress(0);
+        setCurrentSessionType("Focus");
+        setCurrentState("Focusing");
+        setTimeLeft(focusLength);
       }
     },
-    isTimerRunning ? 10 : null
+    isTimerRunning ? 1000 : null
   );
 
   // Pause Button
@@ -130,7 +122,6 @@ function Pomodoro() {
     setIsTimerRunning(false);
     setHidden(false);
     setProgress(0);
-    setAriaValue("0");
     setCurrentSessionType("Focus");
     setCurrentState("Focus");
     // set the interval null
@@ -184,19 +175,16 @@ function Pomodoro() {
             >
               <span className="oi oi-media-stop" />
             </button>
-            <audio id="beep" ref={audioElement}>
-              <source src="public/alarm/alarm-clock-buzzer-beeps.mp3"></source>
-            </audio>
           </div>
         </div>
       </div>
       <TimeLeft
         currentState={currentState}
-        formattedTimeLeft={formattedTimeLeft}
+        formattedFocusLength={formattedFocusLength}
+        formattedTimeLeftInSeconds={formattedTimeLeftInSeconds}
         isPaused={isPaused}
         hidden={hidden}
-        ariaValue={ariaValue}
-        displayDuration={displayDuration}
+        progress={progress}
       />
     </div>
   );
